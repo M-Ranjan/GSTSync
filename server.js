@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const connectDB = require("./config/db");
+const userAuthRoutes = require("./routes/userAuthPost");
 
 const app = express();
 
@@ -8,7 +9,8 @@ const app = express();
 app.use(cors());
 app.use(express.json()); // Built-in middleware for JSON
 
-// Connect to the database
+app.use('/api/user', userAuthRoutes);
+
 connectDB();
 
 // Start the server
