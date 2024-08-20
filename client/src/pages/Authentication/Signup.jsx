@@ -6,8 +6,6 @@ import Logo from '../../images/logo/logo.svg';
 const SignUp = () => {
   return (
     <>
-      
-
       <div className="rounded-sm  bg-white  dark:border-strokedark dark:bg-boxdark">
         <div className="flex flex-wrap items-center">
           <div className="hidden w-full xl:block xl:w-1/2">
