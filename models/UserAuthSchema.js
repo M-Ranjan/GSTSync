@@ -46,6 +46,6 @@ const userAuthSchema = new mongoose.Schema({
     }
 })
 
-const userCredentials = mongoose.model("userCredentials", userAuthSchema);
+const userCredentials = mongoose.model("user_credentials", userAuthSchema);
 
 module.exports = userCredentials;
