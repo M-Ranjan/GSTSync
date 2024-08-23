@@ -29,7 +29,7 @@ const App = () => {
           }
         />
         <Route
-          path="/auth/inputpage"
+          path="/auth/details"
           element={
             <>
               <PageTitle title="Input | GSTsync - GST Management" />

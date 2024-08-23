@@ -1,14 +1,19 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import LogoDark from '../../images/logo/logo-dark.svg';
-import Logo from '../../images/logo/logo.svg';
+import React from "react";
+import { Link } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import LogoDark from "../../images/logo/logoDark.png";
+import Logo from "../../images/logo/logo.png";
 // import { exists } from '../../../../models/UserAuthSchema';
 
 const SignUp = () => {
-  const { register, handleSubmit, formState: { errors }, watch } = useForm();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    watch,
+  } = useForm();
 
-  const password = watch('password');
+  const password = watch("password");
 
   const onSubmit = (data) => {
     console.log(data);
@@ -24,11 +29,11 @@ const SignUp = () => {
             <div className="py-17.5 px-26 text-center">
               <Link className="mb-5.5 inline-block" to="/">
                 <img className="hidden dark:block" src={Logo} alt="Logo" />
-                <img className="dark:hidden" src={LogoDark} alt="Logo" />
+                <img className="dark:hidden w-25" src={LogoDark} alt="Logo" />
               </Link>
               <p className="2xl:px-20">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit
-                suspendisse.
+                Unlock the Power of Hassle-Free GST Compliance with
+                Comprehensive Inventory and Invoice Tools.
               </p>
 
               <span className="mt-15 inline-block">
@@ -158,10 +163,10 @@ const SignUp = () => {
 
           <div className="w-full border-stroke dark:border-strokedark xl:w-1/2 xl:border-l-2">
             <div className="w-full p-4 sm:p-12.5 xl:p-17.5">
-              <span className="mb-1.5 block font-medium">Start for free</span>
-              <h2 className="mb-9 text-2xl font-bold text-black dark:text-white sm:text-title-xl2">
+              <h2 className="mb-1.5 text-2xl font-bold text-black dark:text-white sm:text-title-xl2">
                 Sign Up to GSTSync
               </h2>
+              <span className="mb-9 block font-medium">Start for free</span>
 
               <form onSubmit={handleSubmit(onSubmit)}>
                 <div className="mb-5">
@@ -171,17 +176,20 @@ const SignUp = () => {
                   <div className="relative">
                     <input
                       type="text"
-                      {...register('gstin', {
-                        required: 'GSTIN is required',
+                      {...register("gstin", {
+                        required: "GSTIN is required",
                         pattern: {
                           value: /^[a-zA-Z0-9]{15}$/,
-                          message: 'GSTIN must be exactly 15 alphanumeric characters',
+                          message:
+                            "GSTIN must be exactly 15 alphanumeric characters",
                         },
                       })}
                       placeholder="Enter GSTIN No"
                       className="w-full rounded-lg border border-stroke bg-transparent py-4 pl-6 pr-10 text-black outline-none focus:border-primary focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
                     />
-                    {errors.gstin && <p className="text-red-500">{errors.gstin.message}</p>}
+                    {errors.gstin && (
+                      <p className="text-red-500 text-sm mt-2">{errors.gstin.message}</p>
+                    )}
                     <span className="absolute right-4 top-4">
                       <svg
                         className="fill-current"
@@ -213,17 +221,21 @@ const SignUp = () => {
                   <div className="relative">
                     <input
                       type="password"
-                      {...register('password', {
-                        required: 'Password is required',
+                      {...register("password", {
+                        required: "Password is required",
                         pattern: {
-                          value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{10}$/,
-                          message: 'Password must be exactly 10 characters long, with at least one lowercase letter, one uppercase letter, and one numeric digit',
+                          value:
+                            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{10}$/,
+                          message:
+                            "Password must be exactly 10 characters long, with at least one lowercase letter, one uppercase letter, and one numeric digit",
                         },
                       })}
                       placeholder="Enter Password"
                       className="w-full rounded-lg border border-stroke bg-transparent py-4 pl-6 pr-10 text-black outline-none focus:border-primary focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
                     />
-                    {errors.password && <p className="text-red-500">{errors.password.message}</p>}
+                    {errors.password && (
+                      <p className="text-red-500 text-sm mt-2">{errors.password.message}</p>
+                    )}
                     <span className="absolute right-4 top-4">
                       <svg
                         className="fill-current"
@@ -255,14 +267,19 @@ const SignUp = () => {
                   <div className="relative">
                     <input
                       type="password"
-                      {...register('confirmPassword', {
-                        required: 'Confirm password is required',
-                        validate: (value) => value === password || 'Passwords do not match',
+                      {...register("confirmPassword", {
+                        required: "Confirm password is required",
+                        validate: (value) =>
+                          value === password || "Passwords do not match",
                       })}
                       placeholder="Re-type Password"
                       className="w-full rounded-lg border border-stroke bg-transparent py-4 pl-6 pr-10 text-black outline-none focus:border-primary focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
                     />
-                    {errors.confirmPassword && <p className="text-red-500">{errors.confirmPassword.message}</p>}
+                    {errors.confirmPassword && (
+                      <p className="text-red-500 text-sm mt-2">
+                        {errors.confirmPassword.message}
+                      </p>
+                    )}
                     <span className="absolute right-4 top-4">
                       <svg
                         className="fill-current"
@@ -296,7 +313,7 @@ const SignUp = () => {
                 </div>
                 <div className="mt-6 text-center">
                   <p>
-                    Already have an account?{' '}
+                    Already have an account?{" "}
                     <Link to="/auth/signin" className="text-primary">
                       Sign in
                     </Link>
@@ -310,6 +327,5 @@ const SignUp = () => {
     </>
   );
 };
-
 
 export default SignUp;
