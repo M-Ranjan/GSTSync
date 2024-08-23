@@ -5,11 +5,21 @@ import SignUp from './pages/Authentication/Signup';
 import PageTitle from './Components/PageTitle';
 import Input from './pages/Authentication/Input';
 import './index.css'
+import Home from './pages/Home/Home';
 
 const App = () => {
   return (
     <Router>
       <Routes>
+      <Route
+          path="/"
+          element={
+            <>
+              <PageTitle title="GSTsync - GST Management" />
+              <Home/>
+            </>
+          }
+        />
         <Route
           path="/auth/signin"
           element={
