@@ -1,8 +1,11 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import axios from "axios";
 import { useForm } from "react-hook-form";
 import LogoDark from "../../images/logo/logoDark.png";
 import Logo from "../../images/logo/logo.png";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 // import { exists } from '../../../../models/UserAuthSchema';
 
 const SignUp = () => {
@@ -15,10 +18,35 @@ const SignUp = () => {
 
   const password = watch("password");
 
-  const onSubmit = (data) => {
-    console.log(data);
-    alert("User exists in the gov.in Database, good to go");
-    window.location.reload();
+  const onSubmit = async (data) => {
+    try {
+      const response = await axios.post(
+        "http://localhost:8000/auth/signup", // your signup API URL
+        data
+      );
+      console.log(data)
+      toast.success("Form submitted successfully!", {
+        position: "top-left",
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+      // Redirect or other actions after success
+    } catch (error) {
+      console.error("Error signing up:", error);
+      toast.error("Form submission failed. Please check your inputs.", {
+        position: "top-left",
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+    }
   };
 
   return (
@@ -323,6 +351,7 @@ const SignUp = () => {
             </div>
           </div>
         </div>
+              <ToastContainer />
       </div>
     </>
   );

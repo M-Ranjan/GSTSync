@@ -1,15 +1,24 @@
+require('dotenv').config();
+
 const express = require("express");
 const cors = require("cors");
 const connectDB = require("./config/db");
 const userAuthRoutes = require("./routes/userAuthPost");
+const userAuthSignUpRoutes = require("./routes/userAuthSignupPost")
 
 const app = express();
 
 // Middleware
-app.use(cors());
 app.use(express.json()); // Built-in middleware for JSON
+app.use(cors({
+    origin: ['https://gstsync.onrender.com', 'http://localhost:5173'],
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+  }));
 
-app.use('/api/user', userAuthRoutes);
+
+app.use('/user', userAuthRoutes);
+app.use('/auth', userAuthSignUpRoutes)
 
 connectDB();
 
