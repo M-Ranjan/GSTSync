@@ -6,6 +6,7 @@ import PageTitle from './Components/PageTitle';
 import Input from './pages/Authentication/Input';
 import './index.css'
 import Home from './pages/Home/Home';
+import HomeDashboard from './pages/Dashboard/HomeDashboard';
 
 const App = () => {
   return (
@@ -44,6 +45,15 @@ const App = () => {
             <>
               <PageTitle title="Input | GSTsync - GST Management" />
               <Input />
+            </>
+          }
+        />
+        <Route
+          path="/dashboard"
+          element={
+            <>
+              <PageTitle title="Dashboard | GSTsync - GST Management" />
+              <HomeDashboard />
             </>
           }
         />
