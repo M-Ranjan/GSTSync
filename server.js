@@ -3,7 +3,6 @@ require('dotenv').config();
 const express = require("express");
 const cors = require("cors");
 const connectDB = require("./config/db");
-const userAuthRoutes = require("./routes/userAuthPost");
 const userAuthSignUpRoutes = require("./routes/userAuthSignupPost")
 
 const app = express();
@@ -16,8 +15,6 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization']
   }));
 
-
-app.use('/user', userAuthRoutes);
 app.use('/auth', userAuthSignUpRoutes)
 
 connectDB();
