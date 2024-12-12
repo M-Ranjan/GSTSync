@@ -1,12 +1,12 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useForm } from "react-hook-form";
 import LogoDark from "../../images/logo/logoDark.png";
 import Logo from "../../images/logo/logo.png";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-// import { exists } from '../../../../models/UserAuthSchema';
 
 const SignUp = () => {
   const {
@@ -18,14 +18,17 @@ const SignUp = () => {
 
   const password = watch("password");
 
+  const navigate = useNavigate();
+
   const onSubmit = async (data) => {
     try {
       const response = await axios.post(
         "http://localhost:8000/auth/signup", // your signup API URL
         data
       );
-      console.log(data)
-      toast.success("Form submitted successfully!", {
+      console.log(response.data);
+
+      toast.success("Sign up successful!", {
         position: "top-left",
         autoClose: 2000,
         hideProgressBar: false,
@@ -34,10 +37,12 @@ const SignUp = () => {
         draggable: true,
         progress: undefined,
       });
-      // Redirect or other actions after success
+
+      // Redirect to GST details page after successful signup
+      navigate("/dashboard");
     } catch (error) {
       console.error("Error signing up:", error);
-      toast.error("Form submission failed. Please check your inputs.", {
+      toast.error(error.message, {
         position: "top-left",
         autoClose: 2000,
         hideProgressBar: false,
@@ -216,7 +221,9 @@ const SignUp = () => {
                       className="w-full rounded-lg border border-stroke bg-transparent py-4 pl-6 pr-10 text-black outline-none focus:border-primary focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
                     />
                     {errors.gstin && (
-                      <p className="text-red-500 text-sm mt-2">{errors.gstin.message}</p>
+                      <p className="text-red-500 text-sm mt-2">
+                        {errors.gstin.message}
+                      </p>
                     )}
                     <span className="absolute right-4 top-4">
                       <svg
@@ -262,7 +269,9 @@ const SignUp = () => {
                       className="w-full rounded-lg border border-stroke bg-transparent py-4 pl-6 pr-10 text-black outline-none focus:border-primary focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
                     />
                     {errors.password && (
-                      <p className="text-red-500 text-sm mt-2">{errors.password.message}</p>
+                      <p className="text-red-500 text-sm mt-2">
+                        {errors.password.message}
+                      </p>
                     )}
                     <span className="absolute right-4 top-4">
                       <svg
@@ -351,7 +360,7 @@ const SignUp = () => {
             </div>
           </div>
         </div>
-              <ToastContainer />
+        <ToastContainer />
       </div>
     </>
   );

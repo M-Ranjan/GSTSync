@@ -1,8 +1,12 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import axios from "axios";
 import LogoDark from "../../images/logo/logoDark.png";
 import LogoLight from "../../images/logo/logoLight.png";
 import { useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const SignIn = () => {
   const {
@@ -11,10 +15,41 @@ const SignIn = () => {
     formState: { errors },
   } = useForm();
 
-  const onSubmit = (data) => {
-    console.log(data);
-    alert("Successfully logged in");
-    window.location.reload();
+  const navigate = useNavigate();
+
+  const onSubmit = async (data) => {
+    const { gstin, password } = data;
+    try {
+      const response = await axios.post("http://localhost:8000/auth/signin", {
+        gstin,
+        password,
+      });
+
+      if (response.data.token) {
+        // Save the token in localStorage or sessionStorage
+        localStorage.setItem("token", response.data.token);
+        toast.success("Sign in successful!", {
+          position: "top-left",
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+        navigate("/dashboard");
+      }
+    } catch (error) {
+      toast.error(error.message, {
+        position: "top-left",
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+    }
   };
 
   return (
@@ -24,7 +59,11 @@ const SignIn = () => {
           <div className="hidden w-max xl:block xl:w-1/2">
             <div className="py-17.5 px-26 text-center">
               <Link className="mb-5.5 inline-block" to="/">
-                <img className="hidden dark:block w-25" src={LogoLight} alt="Logo" />
+                <img
+                  className="hidden dark:block w-25"
+                  src={LogoLight}
+                  alt="Logo"
+                />
                 <img className="dark:hidden w-25" src={LogoDark} alt="Logo" />
               </Link>
 
@@ -175,6 +214,7 @@ const SignIn = () => {
                   <div className="relative">
                     <input
                       type="text"
+                      id="gstin"
                       {...register("gstin", {
                         required: "GSTIN is required",
                         pattern: {
@@ -225,6 +265,7 @@ const SignIn = () => {
                   <div className="relative">
                     <input
                       type="password"
+                      id="password"
                       {...register("password", {
                         required: "Password is required",
                       })}
@@ -277,6 +318,7 @@ const SignIn = () => {
             </div>
           </div>
         </div>
+        <ToastContainer />
       </div>
     </>
   );

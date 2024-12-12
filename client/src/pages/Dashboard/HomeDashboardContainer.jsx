@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 function HomeDashboardContainer() {
   const [products, setProducts] = useState([
@@ -111,6 +111,18 @@ function HomeDashboardContainer() {
     });
   };
 
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    // Remove the token from localStorage
+    localStorage.removeItem("token");
+
+    // Optionally, you can also clear other user data stored in localStorage or sessionStorage.
+
+    // Redirect the user to the sign-in page after logging out
+    navigate("/auth/signin");
+  };
+
   return (
     <>
       <div className="bg-gray-50 py-24 sm:py-32">
@@ -132,7 +144,26 @@ function HomeDashboardContainer() {
                   <p className="mt-2 max-w-lg text-sm/6 text-gray-600 max-lg:text-center">
                     Details of the user we colledted during registration
                   </p>
-                  {/* Additional content */}
+                  <div className="flex flex-1 items-center justify-center px-8 max-lg:pt-10 max-lg:pb-12 sm:px-10 lg:pb-2">
+                    <div className="flex flex-wrap justify-center gap-y-4 gap-x-6">
+                      <a className="relative flex h-11 w-full items-center justify-center px-6 before:absolute before:inset-0 before:rounded-full before:bg-primary before:transition before:duration-300 hover:before:scale-105 active:duration-75 active:before:scale-95 sm:w-max cursor-pointer">
+                        <Link
+                          to="/auth/signup"
+                          className="relative text-base font-semibold text-white"
+                        >
+                          Edit Info
+                        </Link>
+                      </a>
+                      <a className="relative flex h-11 w-full items-center justify-center px-6 before:absolute before:inset-0 before:rounded-full before:border before:border-transparent before:bg-primary/10 before:bg-gradient-to-b before:transition before:duration-300 hover:before:scale-105 active:duration-75 active:before:scale-95 dark:before:border-gray-700 dark:before:bg-gray-800 sm:w-max cursor-pointer" onClick={handleLogout}>
+                        <Link
+                          to="/auth/signin"
+                          className="relative text-base font-semibold text-primary dark:text-white"
+                        >
+                          Logout
+                        </Link>
+                      </a>
+                    </div>
+                  </div>
                 </div>
               </div>
               <div className="pointer-events-none absolute inset-px rounded-lg ring-1 shadow-sm ring-black/5 lg:rounded-l-[2rem]"></div>
@@ -154,7 +185,7 @@ function HomeDashboardContainer() {
                 </div>
                 <div className="flex flex-1 items-center justify-center px-8 max-lg:pt-10 max-lg:pb-12 sm:px-10 lg:pb-2">
                   <div className="flex flex-wrap justify-center gap-y-4 gap-x-6">
-                    <a className="relative flex h-11 w-full items-center justify-center px-6 before:absolute before:inset-0 before:rounded-full before:bg-primary before:transition before:duration-300 hover:before:scale-105 active:duration-75 active:before:scale-95 sm:w-max">
+                    <a className="relative flex h-11 w-full items-center justify-center px-6 before:absolute before:inset-0 before:rounded-full before:bg-primary before:transition before:duration-300 hover:before:scale-105 active:duration-75 active:before:scale-95 sm:w-max cursor-pointer">
                       <Link
                         to="/auth/signup"
                         className="relative text-base font-semibold text-white"
@@ -162,7 +193,7 @@ function HomeDashboardContainer() {
                         View Sales
                       </Link>
                     </a>
-                    <a className="relative flex h-11 w-full items-center justify-center px-6 before:absolute before:inset-0 before:rounded-full before:border before:border-transparent before:bg-primary/10 before:bg-gradient-to-b before:transition before:duration-300 hover:before:scale-105 active:duration-75 active:before:scale-95 dark:before:border-gray-700 dark:before:bg-gray-800 sm:w-max">
+                    <a className="relative flex h-11 w-full items-center justify-center px-6 before:absolute before:inset-0 before:rounded-full before:border before:border-transparent before:bg-primary/10 before:bg-gradient-to-b before:transition before:duration-300 hover:before:scale-105 active:duration-75 active:before:scale-95 dark:before:border-gray-700 dark:before:bg-gray-800 sm:w-max cursor-pointer">
                       <Link
                         to="/auth/signin"
                         className="relative text-base font-semibold text-primary dark:text-white"
@@ -194,13 +225,13 @@ function HomeDashboardContainer() {
                     {/* View Products */}
                     <a
                       onClick={() => setIsModalOpen(true)} // Open modal when clicked
-                      className="relative flex h-11 w-full items-center justify-center px-6 before:absolute before:inset-0 before:rounded-full before:bg-primary before:transition before:duration-300 hover:before:scale-105 active:duration-75 active:before:scale-95 sm:w-max"
+                      className="relative flex h-11 w-full items-center justify-center px-6 before:absolute before:inset-0 before:rounded-full before:bg-primary before:transition before:duration-300 hover:before:scale-105 active:duration-75 active:before:scale-95 sm:w-max cursor-pointer"
                     >
                       <span className="relative text-base font-semibold text-white">
                         Add Products
                       </span>
                     </a>
-                    <a className="relative flex h-11 w-full items-center justify-center px-6 before:absolute before:inset-0 before:rounded-full before:border before:border-transparent before:bg-primary/10 before:bg-gradient-to-b before:transition before:duration-300 hover:before:scale-105 active:duration-75 active:before:scale-95 dark:before:border-gray-700 dark:before:bg-gray-800 sm:w-max">
+                    <a className="relative flex h-11 w-full items-center justify-center px-6 before:absolute before:inset-0 before:rounded-full before:border before:border-transparent before:bg-primary/10 before:bg-gradient-to-b before:transition before:duration-300 hover:before:scale-105 active:duration-75 active:before:scale-95 dark:before:border-gray-700 dark:before:bg-gray-800 sm:w-max cursor-pointer">
                       View Products
                     </a>
                   </div>
