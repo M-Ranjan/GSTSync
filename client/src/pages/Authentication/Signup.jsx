@@ -22,27 +22,49 @@ const SignUp = () => {
 
   const onSubmit = async (data) => {
     try {
+      // Make sure to use the correct signup API endpoint
       const response = await axios.post(
-        "http://localhost:8000/auth/signup", // your signup API URL
-        data
+        "http://localhost:8000/auth/signup", // Update this if your endpoint is different
+        data,
+        {
+          headers: {
+            "Content-Type": "application/json", // Make sure to specify the content type
+          },
+        }
       );
-      console.log(response.data);
 
-      toast.success("Sign up successful!", {
-        position: "top-left",
-        autoClose: 2000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-      });
+      // Check if the response status is successful
+      if (response.status === 200) {
+        console.log(response.data);
 
-      // Redirect to GST details page after successful signup
-      navigate("/dashboard");
+        toast.success("Sign up successful!", {
+          position: "top-left",
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+
+        // Redirect to dashboard after successful signup
+        navigate("/dashboard");
+      } else {
+        toast.error("Something went wrong during signup.", {
+          position: "top-left",
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+      }
     } catch (error) {
       console.error("Error signing up:", error);
-      toast.error(error.message, {
+
+      // Handle the error properly
+      toast.error(error.response?.data?.message || "Error signing up", {
         position: "top-left",
         autoClose: 2000,
         hideProgressBar: false,
@@ -53,7 +75,7 @@ const SignUp = () => {
       });
     }
   };
-
+  
   return (
     <>
       <div className="rounded-sm  bg-white  dark:border-strokedark dark:bg-boxdark">
