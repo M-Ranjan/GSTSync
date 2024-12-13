@@ -27,7 +27,7 @@ const signUp = async (req, res) => {
 
     // Generate JWT token
     const token = jwt.sign(
-      { userId: newUser._id, gstin: user.gstin },
+      { userId: newUser._id, gstin: newUser.gstin },
       process.env.SECRET_KEY,
       { expiresIn: "10h" }
     );
