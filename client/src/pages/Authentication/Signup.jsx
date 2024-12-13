@@ -24,7 +24,7 @@ const SignUp = () => {
     try {
       // Make sure to use the correct signup API endpoint
       const response = await axios.post(
-        "http://gstsync.onrender.com/auth/signup", // Update this if your endpoint is different
+        "https://gstsync.onrender.com/auth/signup", // Update this if your endpoint is different
         data,
         {
           headers: {

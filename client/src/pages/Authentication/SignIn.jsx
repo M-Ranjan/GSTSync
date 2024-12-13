@@ -20,7 +20,7 @@ const SignIn = () => {
   const onSubmit = async (data) => {
     const { gstin, password } = data;
     try {
-      const response = await axios.post("http://gstsync.onrender.com/auth/signin", {
+      const response = await axios.post("https://gstsync.onrender.com/auth/signin", {
         gstin,
         password,
       });
