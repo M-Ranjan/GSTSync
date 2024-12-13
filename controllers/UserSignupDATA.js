@@ -49,6 +49,7 @@ const signIn = async (req, res) => {
 
     // Compare the provided password with the hashed password
     const isMatch = await bcrypt.compare(password, user.password);
+    
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid GSTIN or password" });
     }

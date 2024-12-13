@@ -1,10 +1,10 @@
-// const express = require("express");
-// const { addSale, getSales } = require("../controllers/UserSalesDATA");
-// const authenticate = require("../middlewares/Authentication");
+const express = require("express");
+const { addSale, getSales } = require("../controllers/UserSalesDATA");
+const authenticate = require("../middlewares/Authentication");
 
-// const router = express.Router();
+const router = express.Router();
 
-// router.post("/add", authenticate, addSale); // Add a sales record
-// router.get("/", authenticate, getSales);    // Get all sales for the user
+router.post("/add", authenticate, addSale); // Add a sales record
+router.get("/", authenticate, getSales);    // Get all sales for the user
 
-// module.exports = router;
+module.exports = router;
