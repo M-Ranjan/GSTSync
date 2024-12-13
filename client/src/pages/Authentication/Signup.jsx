@@ -35,8 +35,6 @@ const SignUp = () => {
 
       // Check if the response status is successful
       if (response.status === 200) {
-        console.log(response.data);
-
         toast.success("Sign up successful!", {
           position: "top-left",
           autoClose: 2000,

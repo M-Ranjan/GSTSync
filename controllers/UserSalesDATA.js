@@ -1,10 +1,9 @@
 const Sales = require("../models/UserSalesSchema");
+const Product = require("../models/ProductSchema");
 
 // POST: Add a new sales record
 const addSale = async (req, res) => {
     try {
-        console.log("Received GSTIN:", req.gstin);
-
         const { customerName, grandTotal, products } = req.body;
 
         // Validate products array
@@ -14,13 +13,22 @@ const addSale = async (req, res) => {
 
         // Validate stock for each product
         for (let product of products) {
-            if (product.quantity > product.stock) {
+            const dbProduct = await Product.findById(product._id); // Fetch product from DB
+            if (!dbProduct) {
                 return res.status(400).json({
-                    message: `Requested quantity for product '${product.name}' exceeds stock.`,
+                    message: `Product with ID '${product._id}' not found.`,
+                });
+            }
+
+            // Check if requested quantity exceeds stock
+            if (product.quantity > dbProduct.stock) {
+                return res.status(400).json({
+                    message: `Requested quantity for product '${dbProduct.name}' exceeds stock.`,
                 });
             }
         }
 
+        // Create new sales record
         const newSale = new Sales({
             gstin: req.gstin, // Comes from the middleware
             customerName,
@@ -28,7 +36,16 @@ const addSale = async (req, res) => {
             products,
         });
 
+        // Save the sale to the database
         await newSale.save();
+
+        // Reduce the stock for each product in the sale
+        for (let product of products) {
+            const dbProduct = await Product.findById(product._id);
+            dbProduct.stock -= product.quantity; // Reduce stock by the sold quantity
+            await dbProduct.save(); // Save the updated product stock
+        }
+
         res.status(201).json({ message: "Sale added successfully", sale: newSale });
     } catch (error) {
         console.error("Error adding sale:", error);

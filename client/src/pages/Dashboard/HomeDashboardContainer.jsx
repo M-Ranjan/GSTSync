@@ -1,121 +1,163 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function HomeDashboardContainer() {
   const [products, setProducts] = useState([]);
-  const [customerName, setCustomerName] = useState("");
   const [user, setUser] = useState(null);
+  const [sales, setSales] = useState([]);
+  const [customerName, setCustomerName] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [grandTotal, setGrandTotal] = useState(0);
+  const [filteredProducts, setFilteredProducts] = useState([]);
   const [selectedProducts, setSelectedProducts] = useState([]);
-  const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
-  const [isProductsModalOpen, setIsProductsModalOpen] = useState(false); // Modal state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isProductsModalOpen, setIsProductsModalOpen] = useState(false);
+  const [isSalesModalOpen, setIsSalesModalOpen] = useState(false);
   const [newProduct, setNewProduct] = useState({
     name: "",
     stock: 0,
     price: 0,
-  }); // New product state
+  });
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if token exists in localStorage
     const token = localStorage.getItem("token");
     if (token) {
-      // Decode the token and extract the gstin
       const decodedToken = jwtDecode(token);
-      const gstin = decodedToken.gstin; // Replace 'gstin' with the actual key from your token payload
-      setUser(gstin); // Set the gstin in the user state
+      const gstin = decodedToken.gstin;
+      setUser(gstin);
     }
-  }, []); // Empty dependency array ensures this runs only once on component mount
+  }, []);
 
-  // Fetch products from the API on component mount
   useEffect(() => {
-    // Retrieve JWT token from localStorage
     const token = localStorage.getItem("token");
 
-    // Make the API call with Bearer token if it exists
+    if (token) {
+      axios
+        .get("http://localhost:8000/sales/get-sales", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .then((response) => {
+          console.log("Sales data:", response.data); // Log the data to verify
+          // Access the sales array inside the response
+          if (Array.isArray(response.data.sales)) {
+            setSales(response.data.sales); // Set the sales data
+          } else {
+            setSales([]); // If sales is not an array, set it to empty array
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching sales:", error);
+          setSales([]); // Set empty array if there is an error
+        });
+    }
+  }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+
     axios
       .get("http://localhost:8000/products/get-products", {
         headers: {
-          Authorization: `Bearer ${token}`, // Pass token as Bearer token
+          Authorization: `Bearer ${token}`,
         },
       })
       .then((response) => {
-        setProducts(response.data); // Update state with the fetched products
+        setProducts(response.data);
       })
       .catch((error) => {
         console.error("Error fetching products:", error);
       });
   }, []);
 
-  // Filter products based on search term
-  const filteredProducts = products.filter(
-    (product) =>
-      product.name &&
-      product.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  // Handle adding product to the selected list
-  const addProductToCart = (product) => {
-    const existingProduct = selectedProducts.find(
-      (selectedProduct) => selectedProduct.id === product.id
-    );
-
-    if (existingProduct) {
-      // If the product is already in the cart, just increase the quantity
-      setSelectedProducts(
-        selectedProducts.map((selectedProduct) =>
-          selectedProduct.id === product.id
-            ? { ...selectedProduct, quantity: selectedProduct.quantity + 1 }
-            : selectedProduct
-        )
+  useEffect(() => {
+    if (searchTerm) {
+      const results = products.filter((product) =>
+        product.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
+      setFilteredProducts(results);
     } else {
-      // If the product is not in the cart, add it with quantity 1
-      setSelectedProducts([...selectedProducts, { ...product, quantity: 1 }]);
+      setFilteredProducts([]);
     }
+  }, [searchTerm]);
+
+  const addProductToCart = (product) => {
+    const updatedProducts = [...selectedProducts];
+    const existingProduct = updatedProducts.find(
+      (item) => item.name === product.name
+    );
+    if (existingProduct) {
+      existingProduct.quantity += 1;
+    } else {
+      updatedProducts.push({ ...product, quantity: 1 });
+    }
+    setSelectedProducts(updatedProducts);
+    updateGrandTotal(updatedProducts);
   };
 
-  // Calculate grand total
-  const grandTotal = selectedProducts.reduce(
-    (total, product) => total + product.price * product.quantity,
-    0
-  );
+  const updateGrandTotal = (products) => {
+    const total = products.reduce(
+      (sum, product) => sum + product.price * product.quantity,
+      0
+    );
+    setGrandTotal(total);
+  };
 
-  // Handle form submission for POS (Sale)
-  const handleSubmit = (e) => {
+  const handleAddSales = (e) => {
     e.preventDefault();
+
     const saleDetails = {
       customerName,
       products: selectedProducts,
       grandTotal,
     };
-    console.log("Sale Details:", saleDetails);
 
-    // Reduce the stock based on the sale
-    const updatedProducts = [...products];
+    const token = localStorage.getItem("token");
 
-    selectedProducts.forEach((selectedProduct) => {
-      const productIndex = updatedProducts.findIndex(
-        (product) => product.id === selectedProduct.id
-      );
-
-      if (productIndex !== -1) {
-        updatedProducts[productIndex].stock -= selectedProduct.quantity;
-      }
-    });
-
-    setProducts(updatedProducts); // Update the products state with reduced stock
-
-    // Clear the form after submission
-    setCustomerName("");
-    setSelectedProducts([]);
-    setSearchTerm("");
+    if (token) {
+      axios
+        .post("http://localhost:8000/sales/add-sales", saleDetails, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .then((response) => {
+          setCustomerName("");
+          setSelectedProducts([]);
+          setSearchTerm("");
+          toast.success("Sale processed successfully!", {
+            position: "top-left",
+            autoClose: 2000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+          });
+        })
+        .catch((error) => {
+          toast.error(`Something went wrong during signup.${error}`, {
+            position: "top-left",
+            autoClose: 2000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+          });
+        });
+    } else {
+      console.log("No token found in localStorage.");
+    }
   };
 
-  // Handle form input change for new product
   const handleProductChange = (e) => {
     const { name, value } = e.target;
     setNewProduct((prevProduct) => ({
@@ -124,34 +166,28 @@ function HomeDashboardContainer() {
     }));
   };
 
-  // Handle adding new product to inventory via API
   const handleAddProduct = () => {
-    // Retrieve JWT token from localStorage
     const token = localStorage.getItem("token");
 
     if (token) {
-      // Decode the token to get the GSTIN (assuming it's stored in the token payload)
       const decodedToken = jwtDecode(token);
-      const gstin = decodedToken.gstin; // Replace 'gstin' with the actual key from your token payload
-      // Prepare the product data
+      const gstin = decodedToken.gstin;
       const productData = {
         name: newProduct.name,
-        price: newProduct.price * (1 + newProduct.tax / 100), // Apply tax to price
+        price: newProduct.price * (1 + newProduct.tax / 100),
         stock: newProduct.stock,
-        gstin: gstin, // Add GSTIN to the product data
+        gstin: gstin,
       };
 
-      // Make the API call to add the product
       axios
         .post("http://localhost:8000/products/add-product", productData, {
           headers: {
-            Authorization: `Bearer ${token}`, // Pass token as Bearer token
+            Authorization: `Bearer ${token}`,
           },
         })
         .then((response) => {
-          // Update state with the newly added product
           setProducts([...products, response.data]);
-          setIsModalOpen(false); // Close modal after adding the product
+          setIsModalOpen(false);
           setNewProduct({
             name: "",
             stock: 0,
@@ -167,21 +203,24 @@ function HomeDashboardContainer() {
   };
 
   const handleLogout = () => {
-    // Remove the token from localStorage
     localStorage.removeItem("token");
-
-    // Optionally, you can also clear other user data stored in localStorage or sessionStorage.
-
-    // Redirect the user to the sign-in page after logging out
     navigate("/auth/signin");
   };
 
   const handleViewProducts = () => {
-    setIsProductsModalOpen(true); // Open the modal when "View Products" is clicked
+    setIsProductsModalOpen(true);
   };
 
   const handleProductCloseModal = () => {
-    setIsProductsModalOpen(false); // Close the modal
+    setIsProductsModalOpen(false);
+  };
+
+  const handleViewSales = () => {
+    setIsSalesModalOpen(true);
+  };
+
+  const handleSalesCloseModal = () => {
+    setIsSalesModalOpen(false);
   };
 
   return (
@@ -202,10 +241,19 @@ function HomeDashboardContainer() {
                   <p className="mt-2 text-lg font-medium tracking-tight text-gray-950 max-lg:text-center">
                     GST & User Details
                   </p>
-                  <p className="mt-2 max-w-lg text-sm/6 text-gray-600 max-lg:text-center">
-                    {user}
-                  </p>
-                  <div className="flex flex-1 items-center justify-center px-8 max-lg:pt-10 max-lg:pb-12 sm:px-10 lg:pb-2">
+                  <div className="mt-6 flex flex-col gap-4">
+                    <label className="text-sm font-medium text-gray-700">
+                      Your GST Number:
+                    </label>
+                    <input
+                      type="text"
+                      value={user}
+                      className="px-4 py-2 border rounded-md text-gray-800"
+                      disabled
+                    />
+                  </div>
+
+                  <div className="flex flex-1 mt-10 items-center justify-center px-8 max-lg:pt-10 max-lg:pb-12 sm:px-10 lg:pb-2">
                     <div className="flex flex-wrap justify-center gap-y-4 gap-x-6">
                       <a
                         className="relative flex h-11 w-full items-center justify-center px-6 before:absolute before:inset-0 before:rounded-full before:border before:border-transparent before:bg-primary/10 before:bg-gradient-to-b before:transition before:duration-300 hover:before:scale-105 active:duration-75 active:before:scale-95 dark:before:border-gray-700 dark:before:bg-gray-800 sm:w-max cursor-pointer"
@@ -236,7 +284,10 @@ function HomeDashboardContainer() {
                 </div>
                 <div className="flex flex-1 items-center justify-center px-8 max-lg:pt-10 max-lg:pb-12 sm:px-10 lg:pb-2">
                   <div className="flex flex-wrap justify-center gap-y-4 gap-x-6">
-                    <a className="relative flex h-11 w-full items-center justify-center px-6 before:absolute before:inset-0 before:rounded-full before:border before:border-transparent before:bg-primary/10 before:bg-gradient-to-b before:transition before:duration-300 hover:before:scale-105 active:duration-75 active:before:scale-95 dark:before:border-gray-700 dark:before:bg-gray-800 sm:w-max cursor-pointer">
+                    <a
+                      onClick={handleViewSales}
+                      className="relative flex h-11 w-full items-center justify-center px-6 before:absolute before:inset-0 before:rounded-full before:border before:border-transparent before:bg-primary/10 before:bg-gradient-to-b before:transition before:duration-300 hover:before:scale-105 active:duration-75 active:before:scale-95 dark:before:border-gray-700 dark:before:bg-gray-800 sm:w-max cursor-pointer"
+                    >
                       View Sales
                     </a>
                   </div>
@@ -285,7 +336,7 @@ function HomeDashboardContainer() {
             <div className="relative lg:row-span-2">
               <div className="absolute inset-px rounded-lg bg-white lg:rounded-r-[2rem]"></div>
               <div className="relative flex h-full flex-col gap-10 overflow-hidden rounded-[calc(var(--radius-lg)+1px)]">
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={handleAddSales}>
                   {" "}
                   {/* Wrap the form in a submit handler */}
                   <div className="px-8 pt-8 sm:px-10 sm:pt-10">
@@ -392,6 +443,7 @@ function HomeDashboardContainer() {
             </div>
           </div>
         </div>
+        <ToastContainer />
       </div>
       {/* Modal for adding new product */}
       {isModalOpen && (
@@ -478,22 +530,106 @@ function HomeDashboardContainer() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white p-6 rounded-lg w-1/2 max-h-[80vh] overflow-y-auto">
             <h2 className="text-2xl font-bold mb-4">Product List</h2>
-            <ul>
-              {products.map((product) => (
-                <li key={product.id} className="mb-4">
-                  <p className="font-medium text-lg">{product.name}</p>
-                  <p className="text-sm text-gray-500">
-                    Price: ${product.price}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    Stock: {product.stock}
-                  </p>
-                </li>
-              ))}
-            </ul>
+            <table className="min-w-full border-collapse">
+              <thead>
+                <tr>
+                  <th className="border border-gray-300 p-2">Product Name</th>
+                  <th className="border border-gray-300 p-2">Price</th>
+                  <th className="border border-gray-300 p-2">Stock</th>
+                </tr>
+              </thead>
+              <tbody>
+                {products.length > 0 ? (
+                  products.map((product) => (
+                    <tr key={product.id}>
+                      <td className="border border-gray-300 p-2">
+                        {product.name}
+                      </td>
+                      <td className="border border-gray-300 p-2">
+                        ₹{product.price}
+                      </td>
+                      <td className="border border-gray-300 p-2">
+                        {product.stock}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan="3"
+                      className="border border-gray-300 p-2 text-center"
+                    >
+                      No products found
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
             <a
               onClick={handleProductCloseModal}
-              className="relative flex h-11 w-full items-center justify-center px-6 before:absolute before:inset-0 before:rounded-full before:border before:border-transparent before:bg-primary/10 before:bg-gradient-to-b before:transition before:duration-300 hover:before:scale-105 active:duration-75 active:before:scale-95 dark:before:border-gray-700 dark:before:bg-gray-800 sm:w-max cursor-pointer"
+              className="relative mt-10 flex h-11 w-full items-center justify-center px-6 before:absolute before:inset-0 before:rounded-full before:border before:border-transparent before:bg-primary/10 before:bg-gradient-to-b before:transition before:duration-300 hover:before:scale-105 active:duration-75 active:before:scale-95 dark:before:border-gray-700 dark:before:bg-gray-800 sm:w-max cursor-pointer"
+            >
+              Close
+            </a>
+          </div>
+        </div>
+      )}
+
+      {/* Modal to display sales */}
+      {isSalesModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-lg w-1/2 max-h-[80vh] overflow-y-auto">
+            <h2 className="text-2xl font-bold mb-4">Sales Details</h2>
+            <table className="min-w-full border-collapse">
+              <thead>
+                <tr>
+                  <th className="border border-gray-300 p-2">Customer Name</th>
+                  <th className="border border-gray-300 p-2">Product</th>
+                  <th className="border border-gray-300 p-2">Quantity</th>
+                  <th className="border border-gray-300 p-2">Grand Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sales.length > 0 ? (
+                  sales.map((sale, index) => (
+                    <tr key={index}>
+                      <td className="border border-gray-300 p-2">
+                        {sale.customerName}
+                      </td>
+                      <td className="border border-gray-300 p-2">
+                        {sale.products.map((product, idx) => (
+                          <div key={idx}>
+                            {product.name} - {product.quantity} x{" "}
+                            {product.price}
+                          </div>
+                        ))}
+                      </td>
+                      <td className="border border-gray-300 p-2">
+                        {sale.products.reduce(
+                          (acc, product) => acc + product.quantity,
+                          0
+                        )}
+                      </td>
+                      <td className="border border-gray-300 p-2">
+                        {sale.grandTotal}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan="6"
+                      className="border border-gray-300 p-2 text-center"
+                    >
+                      No sales found
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+            <a
+              onClick={handleSalesCloseModal}
+              className="relative mt-10 flex h-11 w-full items-center justify-center px-6 before:absolute before:inset-0 before:rounded-full before:border before:border-transparent before:bg-primary/10 before:bg-gradient-to-b before:transition before:duration-300 hover:before:scale-105 active:duration-75 active:before:scale-95 dark:before:border-gray-700 dark:before:bg-gray-800 sm:w-max cursor-pointer"
             >
               Close
             </a>
