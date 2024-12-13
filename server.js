@@ -4,7 +4,7 @@ const express = require("express");
 const cors = require("cors");
 const connectDB = require("./config/db");
 const userAuthSignUpRoutes = require("./routes/userAuthSignupPost")
-// const salesRoutes = require("./routes/SalesRoute");
+const salesRoutes = require("./routes/SalesRoute");
 const productRoutes = require("./routes/ProductRoute");
 
 const app = express();
@@ -18,7 +18,7 @@ app.use(cors({
 }));
 
 app.use('/auth', userAuthSignUpRoutes);
-// app.use("/sales", salesRoutes);
+app.use("/sales", salesRoutes);
 app.use("/products", productRoutes)
 
 connectDB();
