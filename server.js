@@ -12,7 +12,7 @@ const app = express();
 // Middleware
 app.use(express.json()); // Built-in middleware for JSON
 app.use(cors({
-  origin: ['https://gstsync.onrender.com', 'http://localhost:5173'],
+  origin: ['https://gstsync.onrender.com', 'http://localhost:5173', 'https://gstsync.netlify.app'],
   methods: ['GET', 'POST'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
