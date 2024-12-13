@@ -5,6 +5,6 @@ const authenticate = require("../middlewares/Authentication");
 const router = express.Router();
 
 router.post("/add-product", authenticate, addProduct);
-router.get("/products", authenticate, getProducts);
+router.get("/get-products", authenticate, getProducts);
 
 module.exports = router;

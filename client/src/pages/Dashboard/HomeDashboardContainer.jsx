@@ -1,27 +1,60 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
 
 function HomeDashboardContainer() {
-  const [products, setProducts] = useState([
-    { id: 1, name: "Product 1", price: 100, stock: 10 },
-    { id: 2, name: "Product 2", price: 200, stock: 5 },
-    { id: 3, name: "Product 3", price: 300, stock: 8 },
-  ]);
-
+  const [products, setProducts] = useState([]);
   const [customerName, setCustomerName] = useState("");
+  const [user, setUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
+  const [isProductsModalOpen, setIsProductsModalOpen] = useState(false); // Modal state
   const [newProduct, setNewProduct] = useState({
     name: "",
     stock: 0,
     price: 0,
-    tax: 0,
   }); // New product state
 
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check if token exists in localStorage
+    const token = localStorage.getItem("token");
+    if (token) {
+      // Decode the token and extract the gstin
+      const decodedToken = jwtDecode(token);
+      const gstin = decodedToken.gstin; // Replace 'gstin' with the actual key from your token payload
+      setUser(gstin); // Set the gstin in the user state
+    }
+  }, []); // Empty dependency array ensures this runs only once on component mount
+
+  // Fetch products from the API on component mount
+  useEffect(() => {
+    // Retrieve JWT token from localStorage
+    const token = localStorage.getItem("token");
+
+    // Make the API call with Bearer token if it exists
+    axios
+      .get("http://localhost:8000/products/get-products", {
+        headers: {
+          Authorization: `Bearer ${token}`, // Pass token as Bearer token
+        },
+      })
+      .then((response) => {
+        setProducts(response.data); // Update state with the fetched products
+      })
+      .catch((error) => {
+        console.error("Error fetching products:", error);
+      });
+  }, []);
+
   // Filter products based on search term
-  const filteredProducts = products.filter((product) =>
-    product.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredProducts = products.filter(
+    (product) =>
+      product.name &&
+      product.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Handle adding product to the selected list
@@ -91,27 +124,47 @@ function HomeDashboardContainer() {
     }));
   };
 
-  // Handle adding new product to inventory
+  // Handle adding new product to inventory via API
   const handleAddProduct = () => {
-    setProducts([
-      ...products,
-      {
-        id: products.length + 1, // Generate a new id based on the current list length
+    // Retrieve JWT token from localStorage
+    const token = localStorage.getItem("token");
+
+    if (token) {
+      // Decode the token to get the GSTIN (assuming it's stored in the token payload)
+      const decodedToken = jwtDecode(token);
+      const gstin = decodedToken.gstin; // Replace 'gstin' with the actual key from your token payload
+      // Prepare the product data
+      const productData = {
         name: newProduct.name,
         price: newProduct.price * (1 + newProduct.tax / 100), // Apply tax to price
-        stock: newProduct.stock, // Add stock to the product
-      },
-    ]);
-    setIsModalOpen(false); // Close modal after adding the product
-    setNewProduct({
-      name: "",
-      stock: 0,
-      price: 0,
-      tax: 0,
-    });
-  };
+        stock: newProduct.stock,
+        gstin: gstin, // Add GSTIN to the product data
+      };
 
-  const navigate = useNavigate();
+      // Make the API call to add the product
+      axios
+        .post("http://localhost:8000/products/add-product", productData, {
+          headers: {
+            Authorization: `Bearer ${token}`, // Pass token as Bearer token
+          },
+        })
+        .then((response) => {
+          // Update state with the newly added product
+          setProducts([...products, response.data]);
+          setIsModalOpen(false); // Close modal after adding the product
+          setNewProduct({
+            name: "",
+            stock: 0,
+            price: 0,
+          });
+        })
+        .catch((error) => {
+          console.error("Error adding product:", error);
+        });
+    } else {
+      console.log("No token found in localStorage.");
+    }
+  };
 
   const handleLogout = () => {
     // Remove the token from localStorage
@@ -121,6 +174,14 @@ function HomeDashboardContainer() {
 
     // Redirect the user to the sign-in page after logging out
     navigate("/auth/signin");
+  };
+
+  const handleViewProducts = () => {
+    setIsProductsModalOpen(true); // Open the modal when "View Products" is clicked
+  };
+
+  const handleProductCloseModal = () => {
+    setIsProductsModalOpen(false); // Close the modal
   };
 
   return (
@@ -142,25 +203,15 @@ function HomeDashboardContainer() {
                     GST & User Details
                   </p>
                   <p className="mt-2 max-w-lg text-sm/6 text-gray-600 max-lg:text-center">
-                    Details of the user we colledted during registration
+                    {user}
                   </p>
                   <div className="flex flex-1 items-center justify-center px-8 max-lg:pt-10 max-lg:pb-12 sm:px-10 lg:pb-2">
                     <div className="flex flex-wrap justify-center gap-y-4 gap-x-6">
-                      <a className="relative flex h-11 w-full items-center justify-center px-6 before:absolute before:inset-0 before:rounded-full before:bg-primary before:transition before:duration-300 hover:before:scale-105 active:duration-75 active:before:scale-95 sm:w-max cursor-pointer">
-                        <Link
-                          to="/auth/signup"
-                          className="relative text-base font-semibold text-white"
-                        >
-                          Edit Info
-                        </Link>
-                      </a>
-                      <a className="relative flex h-11 w-full items-center justify-center px-6 before:absolute before:inset-0 before:rounded-full before:border before:border-transparent before:bg-primary/10 before:bg-gradient-to-b before:transition before:duration-300 hover:before:scale-105 active:duration-75 active:before:scale-95 dark:before:border-gray-700 dark:before:bg-gray-800 sm:w-max cursor-pointer" onClick={handleLogout}>
-                        <Link
-                          to="/auth/signin"
-                          className="relative text-base font-semibold text-primary dark:text-white"
-                        >
-                          Logout
-                        </Link>
+                      <a
+                        className="relative flex h-11 w-full items-center justify-center px-6 before:absolute before:inset-0 before:rounded-full before:border before:border-transparent before:bg-primary/10 before:bg-gradient-to-b before:transition before:duration-300 hover:before:scale-105 active:duration-75 active:before:scale-95 dark:before:border-gray-700 dark:before:bg-gray-800 sm:w-max cursor-pointer"
+                        onClick={handleLogout}
+                      >
+                        Logout
                       </a>
                     </div>
                   </div>
@@ -185,21 +236,8 @@ function HomeDashboardContainer() {
                 </div>
                 <div className="flex flex-1 items-center justify-center px-8 max-lg:pt-10 max-lg:pb-12 sm:px-10 lg:pb-2">
                   <div className="flex flex-wrap justify-center gap-y-4 gap-x-6">
-                    <a className="relative flex h-11 w-full items-center justify-center px-6 before:absolute before:inset-0 before:rounded-full before:bg-primary before:transition before:duration-300 hover:before:scale-105 active:duration-75 active:before:scale-95 sm:w-max cursor-pointer">
-                      <Link
-                        to="/auth/signup"
-                        className="relative text-base font-semibold text-white"
-                      >
-                        View Sales
-                      </Link>
-                    </a>
                     <a className="relative flex h-11 w-full items-center justify-center px-6 before:absolute before:inset-0 before:rounded-full before:border before:border-transparent before:bg-primary/10 before:bg-gradient-to-b before:transition before:duration-300 hover:before:scale-105 active:duration-75 active:before:scale-95 dark:before:border-gray-700 dark:before:bg-gray-800 sm:w-max cursor-pointer">
-                      <Link
-                        to="/auth/signin"
-                        className="relative text-base font-semibold text-primary dark:text-white"
-                      >
-                        Add Sales
-                      </Link>
+                      View Sales
                     </a>
                   </div>
                 </div>
@@ -231,7 +269,10 @@ function HomeDashboardContainer() {
                         Add Products
                       </span>
                     </a>
-                    <a className="relative flex h-11 w-full items-center justify-center px-6 before:absolute before:inset-0 before:rounded-full before:border before:border-transparent before:bg-primary/10 before:bg-gradient-to-b before:transition before:duration-300 hover:before:scale-105 active:duration-75 active:before:scale-95 dark:before:border-gray-700 dark:before:bg-gray-800 sm:w-max cursor-pointer">
+                    <a
+                      onClick={handleViewProducts}
+                      className="relative flex h-11 w-full items-center justify-center px-6 before:absolute before:inset-0 before:rounded-full before:border before:border-transparent before:bg-primary/10 before:bg-gradient-to-b before:transition before:duration-300 hover:before:scale-105 active:duration-75 active:before:scale-95 dark:before:border-gray-700 dark:before:bg-gray-800 sm:w-max cursor-pointer"
+                    >
                       View Products
                     </a>
                   </div>
@@ -428,6 +469,34 @@ function HomeDashboardContainer() {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal to display products */}
+      {isProductsModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-lg w-1/2 max-h-[80vh] overflow-y-auto">
+            <h2 className="text-2xl font-bold mb-4">Product List</h2>
+            <ul>
+              {products.map((product) => (
+                <li key={product.id} className="mb-4">
+                  <p className="font-medium text-lg">{product.name}</p>
+                  <p className="text-sm text-gray-500">
+                    Price: ${product.price}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Stock: {product.stock}
+                  </p>
+                </li>
+              ))}
+            </ul>
+            <a
+              onClick={handleProductCloseModal}
+              className="relative flex h-11 w-full items-center justify-center px-6 before:absolute before:inset-0 before:rounded-full before:border before:border-transparent before:bg-primary/10 before:bg-gradient-to-b before:transition before:duration-300 hover:before:scale-105 active:duration-75 active:before:scale-95 dark:before:border-gray-700 dark:before:bg-gray-800 sm:w-max cursor-pointer"
+            >
+              Close
+            </a>
           </div>
         </div>
       )}
