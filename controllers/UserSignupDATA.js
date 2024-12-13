@@ -1,38 +1,42 @@
 const bcrypt = require("bcryptjs");
 const UserSignUpCredential = require("../models/UserSignUpSchema");
 const jwt = require("jsonwebtoken");
-require('dotenv').config();
+require("dotenv").config();
 
 const signUp = async (req, res) => {
   try {
-      const { gstin, password } = req.body;
+    const { gstin, password } = req.body;
 
-      // Check if user already exists
-      const existingUser = await UserSignUpCredential.findOne({ gstin });
-      if (existingUser) {
-          return res.status(400).json({ message: "GSTIN already in use" });
-      }
+    // Check if user already exists
+    const existingUser = await UserSignUpCredential.findOne({ gstin });
+    if (existingUser) {
+      return res.status(400).json({ message: "GSTIN already in use" });
+    }
 
-      // Hash the password
-      const hashedPassword = await bcrypt.hash(password, 10); // Using 10 salt rounds
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10); // Using 10 salt rounds
 
-      // Create a new user
-      const newUser = new UserSignUpCredential({ 
-          gstin,
-          password: hashedPassword,
-      });
+    // Create a new user
+    const newUser = new UserSignUpCredential({
+      gstin,
+      password: hashedPassword,
+    });
 
-      // Save the user to the database
-      await newUser.save();
+    // Save the user to the database
+    await newUser.save();
 
-      // Generate JWT token
-      const token = jwt.sign({ id: newUser._id }, process.env.SECRET_KEY, { expiresIn: "1h" });
+    // Generate JWT token
+    const token = jwt.sign(
+      { userId: newUser._id, gstin: user.gstin },
+      process.env.SECRET_KEY,
+      { expiresIn: "10h" }
+    );
 
-      // Respond with success message and token
-      res.status(201).json({ message: "User registered successfully", token });
+    // Respond with success message and token
+    res.status(201).json({ message: "User registered successfully", token });
   } catch (error) {
-      console.error("Error signing up:", error);
-      res.status(500).json({ message: "Server error. Please try again later." });
+    console.error("Error signing up:", error);
+    res.status(500).json({ message: "Server error. Please try again later." });
   }
 };
 
@@ -49,7 +53,7 @@ const signIn = async (req, res) => {
 
     // Compare the provided password with the hashed password
     const isMatch = await bcrypt.compare(password, user.password);
-    
+
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid GSTIN or password" });
     }
@@ -58,7 +62,7 @@ const signIn = async (req, res) => {
     const token = jwt.sign(
       { userId: user._id, gstin: user.gstin },
       process.env.SECRET_KEY, // Secret key for JWT (you can change this)
-      { expiresIn: "1h" } // Token expiration time (1 hour)
+      { expiresIn: "10h" } // Token expiration time (1 hour)
     );
 
     // Respond with the token and success message
