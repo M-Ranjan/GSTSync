@@ -39,7 +39,7 @@ function HomeDashboardContainer() {
 
     if (token) {
       axios
-        .get("http://localhost:8000/sales/get-sales", {
+        .get("http://gstsync.onrender.com/sales/get-sales", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -64,7 +64,7 @@ function HomeDashboardContainer() {
     const token = localStorage.getItem("token");
 
     axios
-      .get("http://localhost:8000/products/get-products", {
+      .get("http://gstsync.onrender.com/products/get-products", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -123,7 +123,7 @@ function HomeDashboardContainer() {
 
     if (token) {
       axios
-        .post("http://localhost:8000/sales/add-sales", saleDetails, {
+        .post("http://gstsync.onrender.com/sales/add-sales", saleDetails, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -180,7 +180,7 @@ function HomeDashboardContainer() {
       };
 
       axios
-        .post("http://localhost:8000/products/add-product", productData, {
+        .post("http://gstsync.onrender.com/products/add-product", productData, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
